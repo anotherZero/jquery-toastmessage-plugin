@@ -58,7 +58,10 @@
 	var settings = {
 				inEffect: 			{opacity: 'show'},	// in effect
 				inEffectDuration: 	600,				// in effect duration in miliseconds
-				stayTime: 			3000,				// time in miliseconds before the item has to disappear
+				stayTimeSuccess: 	3000,				// time in miliseconds before the success item has to disappear
+				stayTimeNotice: 	6000,				// time in miliseconds before the notice item has to disappear
+				stayTimeWarning: 	9000,				// time in miliseconds before the warning item has to disappear
+				stayTimeError: 		11000,				// time in miliseconds before the error item has to disappear
 				text: 				'',					// content of the item. Might be a string or a jQuery object. Be aware that any jQuery object which is acting as a message will be deleted when the toast is fading away.
 				sticky: 			false,				// should the toast item sticky or not?
 				type: 				'notice', 			// notice, warning, error, success
@@ -68,16 +71,26 @@
             };
 
     var methods = {
-        init : function(options)
-		{
+        init : function(options) {
 			if (options) {
                 $.extend( settings, options );
             }
 		},
 
-        show : function(options)
-		{
+        show : function(options) {
 			var localSettings = {};
+
+			// set sane defaults for each type of notice if not set explicitly (only applies when called via generic 'show' method)
+			if(options.type == 'error' && typeof(options.stayTime) === 'undefined') {
+				options.stayTime = settings.stayTimeError;
+			} else if (options.type == 'warning' && typeof(options.stayTime) === 'undefined') {
+				options.stayTime = settings.stayTimeWarning;
+			} else if (options.type == 'notice' && typeof(options.stayTime) === 'undefined') {
+				options.stayTime = settings.stayTimeNotice;
+			} else if (options.type == 'success' && typeof(options.stayTime) === 'undefined') {
+				options.stayTime = settings.stayTimeSuccess;
+			}
+			
             $.extend(localSettings, settings, options);
 
 			// declare variables
@@ -109,6 +122,7 @@
             var options = {
 				'text': message,
 				'type': 'notice',
+				'stayTime': settings.stayTimeNotice,
 				'sticky': sticky || false
 			};
             return methods.show(options);
@@ -118,6 +132,7 @@
             var options = {
 				'text': message,
 				'type': 'success',
+				'stayTime': settings.stayTimeSuccess,
 				'sticky': sticky || false
 			};
             return methods.show(options);
@@ -127,23 +142,23 @@
             var options = {
 				'text': message,
 				'type': 'error',
-				'sticky': sticky || false
+				'stayTime': settings.stayTimeError,
+				'sticky': sticky || true
 			};
             return methods.show(options);
         },
 
-        warning : function(message, sticky)
-		{
+        warning : function(message, sticky) {
             var options = {
 				'text': message,
 				'type': 'warning',
+				'stayTime': settings.stayTimeWarning,
 				'sticky': sticky || false
 			};
             return methods.show(options);
         },
 
-		remove: function(obj, options)
-		{
+		remove: function(obj, options) {
 			obj.animate({opacity: '0'}, 600, function()
 			{
 				obj.parent().animate({height: '0px'}, 300, function()
